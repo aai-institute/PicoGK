@@ -90,7 +90,7 @@ namespace PicoGK
         /// <param name="fnTask">
         /// The task to be executed (it will run in a separate thread)
         /// </param>
-        /// <param name="bHeadlessMode">
+        /// <param name="_bHeadlessMode">
         /// True if the task should be run in a headless mode, without
         /// opening the viewer.
         /// </param>
@@ -115,7 +115,7 @@ namespace PicoGK
         /// </exception>
         public static void Go(  float _fVoxelSizeMM,
                                 ThreadStart fnTask,
-                                bool bHeadlessMode      = false,              
+                                bool _bHeadlessMode     = false,              
                                 string strLogFolder     = "",
                                 string strLogFileName   = "",
                                 string strSrcFolder     = "",
@@ -123,8 +123,10 @@ namespace PicoGK
         {
             Debug.Assert(_fVoxelSizeMM > 0.0f);
             fVoxelSizeMM = _fVoxelSizeMM;
+            bHeadlessMode = _bHeadlessMode;
 
             TestAssumptions();
+            
 
             if (strLogFolder == "")
                 strLogFolder = Utils.strDocumentsFolder();
@@ -152,6 +154,7 @@ namespace PicoGK
                 }
 
                 Log("Welcome to PicoGK");
+                Log($"Headless Mode: {bHeadlessMode}");
 
                 try
                 {
@@ -432,6 +435,7 @@ namespace PicoGK
         }
 
         public static   float   fVoxelSizeMM = 0.0f;
+        public static   bool    bHeadlessMode = false;
         public static   string  strLogFolder = "";
         public static   string  strSrcFolder = "";
 
