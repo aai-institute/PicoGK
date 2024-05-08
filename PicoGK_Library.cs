@@ -90,6 +90,10 @@ namespace PicoGK
         /// <param name="fnTask">
         /// The task to be executed (it will run in a separate thread)
         /// </param>
+        /// <param name="bHeadlessMode">
+        /// True if the task should be run in a headless mode, without
+        /// opening the viewer.
+        /// </param>
         /// <param name="strLogFolder">
         /// The folder where you want the log file (defaults to your
         /// documents folder
@@ -111,6 +115,7 @@ namespace PicoGK
         /// </exception>
         public static void Go(  float _fVoxelSizeMM,
                                 ThreadStart fnTask,
+                                bool bHeadlessMode      = false,              
                                 string strLogFolder     = "",
                                 string strLogFileName   = "",
                                 string strSrcFolder     = "",
@@ -211,60 +216,66 @@ namespace PicoGK
                     }
                 }
 
-                Log("Creating Viewer");
+                if (!bHeadlessMode){
+                    Log("Creating Viewer");
 
-                Viewer? oViewer = null;
-
-                try
-                {
-                    oViewer = new Viewer("PicoGK", new Vector2(2048f, 1024f));
-                }
-
-                catch (Exception e)
-                {
-                    Log("Failed to create viewer");
-                    Log(e.ToString());
-
-                    throw new Exception("Failed to create all necessary objects");
-                }
-
-                using (oViewer)
-                {
-                    if (!bSetup())
-                    {
-                        Log("!! Failed to initialize !!");
-                        return;
-                    }
+                    Viewer? oViewer = null;
 
                     try
                     {
-                        oViewer.LoadLightSetup(strLightsFile);
-                        oViewer.SetBackgroundColor("FF");
+                        oViewer = new Viewer("PicoGK", new Vector2(2048f, 1024f));
                     }
 
                     catch (Exception e)
                     {
-                        Log($"Failed to load Light Setup - your viewer will look dark\n{e.Message}");
-                    }
-                    
+                        Log("Failed to create viewer");
+                        Log(e.ToString());
 
-                    lock (oMtxViewer)
+                        throw new Exception("Failed to create all necessary objects");
+                    }
+
+                    using (oViewer)
                     {
-                        oTheViewer = oViewer;
-                    }
+                        if (!bSetup())
+                        {
+                            Log("!! Failed to initialize !!");
+                            return;
+                        }
 
+                        try
+                        {
+                            oViewer.LoadLightSetup(strLightsFile);
+                            oViewer.SetBackgroundColor("FF");
+                        }
+
+                        catch (Exception e)
+                        {
+                            Log($"Failed to load Light Setup - your viewer will look dark\n{e.Message}");
+                        }
+                        
+
+                        lock (oMtxViewer)
+                        {
+                            oTheViewer = oViewer;
+                        }
+
+                        Thread oThread = new Thread(fnTask);
+
+                        Log("Starting tasks.\n");
+                        oThread.Start();
+
+                        while (oViewer.bPoll())
+                        {
+                            Thread.Sleep(5); // 200 Hz is plenty
+                        }
+
+                        m_bAppExit = true;
+                        Log("Viewer Window Closed");
+                    }
+                } else {
+                    // Run in headless mode
                     Thread oThread = new Thread(fnTask);
-
-                    Log("Starting tasks.\n");
                     oThread.Start();
-
-                    while (oViewer.bPoll())
-                    {
-                        Thread.Sleep(5); // 200 Hz is plenty
-                    }
-
-                    m_bAppExit = true;
-                    Log("Viewer Window Closed");
                 }
             }
         }
