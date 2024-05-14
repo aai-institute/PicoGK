@@ -569,6 +569,16 @@ namespace PicoGK
             return oMesh;
         }
 
+        /// <summary>
+        /// Store given voxels as mesh to the output path.
+        /// </summary>
+        /// <param name="oVoxels">Voxels to be stored as mesh.</param>
+        /// <param name="sOutputPath">Output path.</param>
+        static public void StoreVoxelsToMesh(Voxels oVoxels, string sOutputPath){
+            Mesh msh = new Mesh(oVoxels);
+            msh.SaveToStlFile(sOutputPath);
+        }
+
     }
 
     /// <summary>
